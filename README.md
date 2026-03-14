@@ -114,10 +114,12 @@ def forward(self, batch, stage):
 - All model components are passed as kwargs to `spt.Module`
 
 ### 3 - Callbacks
-Monitor and evaluate your models in real-time during training. Callbacks are key ingredients of `stable-pretraining`, providing rich insights without interrupting your training flow:
+Monitor and evaluate your models in real-time during training. Callbacks are key ingredients of `stable-pretraining`, providing rich insights without interrupting your training flow.
+
+For example, OnlineProbe allows to jointly optimize a lightweight model (e.g. a single linear layer) on top of the current backbone model representations.
 
 ```python
-# Monitor SSL representations with a linear probe
+# Monitor SSL representations with a linear classifier
 linear_probe = spt.callbacks.OnlineProbe(
     module,  # Pass the spt.Module instance
     name="linear_probe",  # Useful for retrieving metrics and values in logging
@@ -130,7 +132,11 @@ linear_probe = spt.callbacks.OnlineProbe(
         "top5": torchmetrics.classification.MulticlassAccuracy(10, top_k=5),
     },
 )
+```
 
+OnlineKNN is a non-parametric probe that constructs predictions based on the k nearest neighbors in the representation space.
+
+```python
 # Track representation quality with KNN evaluation
 knn_probe = spt.callbacks.OnlineKNN(
     name="knn_probe",
@@ -140,10 +146,9 @@ knn_probe = spt.callbacks.OnlineKNN(
     k=10,
 )
 ```
-
 Callbacks are powered by an intelligent queue management system that automatically shares memory between callbacks monitoring the same data thus eliminating redundant computations.
 
-**Why callbacks matter:** Get real-time feedback on representation quality, catch issues like collapse early, and track multiple metrics simultaneously for deeper insights.
+**Why callbacks matter:** Get real-time feedback on representation quality, catch issues like collapse early, and track multiple metrics simultaneously for deeper insights. For more details and an overview of useful callbacks, refer to the [Callback guide](stable_pretraining/callbacks/README.md).
 
 ### 4 - Trainer
 Orchestrate everything together with PyTorch Lightning's `Trainer`:
