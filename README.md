@@ -20,6 +20,19 @@ Join our Discord: [https://discord.gg/8M6hT39X](https://discord.gg/adzpqWKM25)
 
 To reach flexibility, scalability and stability, we rely on battle-tested third party libraries: `PyTorch`, `Lightning`, `HuggingFace`, `TorchMetrics` amongst a few others. Those dependencies allow us to focus on assembling everything into a powerful ML framework. ``stable-pretraining`` adopts a flexible and modular design for seamless integration of components from external libraries, including architectures, loss functions, evaluation metrics, and augmentations.
 
+## Quick setup
+
+```bash
+# Clone the repository
+git clone https://github.com/galilai-group/stable-pretraining.git
+
+# Install the framework
+cd stable-pretraining
+pip install -e .
+```
+
+For advanced installation options, see [Installation](#installation) below.
+
 ## Core Structure
 
 `stable-pretraining` simplifies complex ML workflows into 4 intuitive components:
