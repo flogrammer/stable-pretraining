@@ -40,3 +40,4 @@ Now you can simply run the hyperparameter search and it will automatically run m
 ```
 python train.py --config-name=hydra_hp_search
 ```
+It is recommended to use the EarlyStopping callback in combination with hyperparameter optimization to avoid wasting resources on bad trials.
