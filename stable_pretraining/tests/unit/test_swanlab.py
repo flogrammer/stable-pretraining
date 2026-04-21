@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import json
 from typing import Any, Dict
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -34,6 +34,7 @@ def _make_mock_trainer(loggers=None, is_global_zero=True, default_root_dir="/tmp
 
 
 class TestSwanLabLoggerBasics:
+    """Basic import and construction tests for SwanLabLogger."""
 
     def test_import_from_top_level(self):
         from stable_pretraining import SwanLabLogger
@@ -78,6 +79,7 @@ class TestSwanLabLoggerBasics:
 
 
 class TestSwanLabLoggerResume:
+    """Tests for SwanLabLogger resume behavior."""
 
     def test_resume_info_before_init(self):
         """Before experiment is accessed, resume_info reflects constructor args."""
@@ -136,6 +138,7 @@ class TestSwanLabLoggerResume:
 
 
 class TestFindSwanLabLogger:
+    """Tests for locating the SwanLab logger on a trainer."""
 
     def test_find_none(self):
         from stable_pretraining.loggers.swanlab import find_swanlab_logger
@@ -169,15 +172,14 @@ class TestFindSwanLabLogger:
 
 
 class TestSwanLabCheckpointSave:
+    """Tests for the SwanLab checkpoint save callback."""
 
     def test_save_noop_without_logger(self, tmp_path):
         from stable_pretraining.callbacks.checkpoint_swanlab import (
             SwanLabCheckpoint,
         )
 
-        trainer = _make_mock_trainer(
-            loggers=[], default_root_dir=str(tmp_path)
-        )
+        trainer = _make_mock_trainer(loggers=[], default_root_dir=str(tmp_path))
         checkpoint: Dict[str, Any] = {}
 
         cb = SwanLabCheckpoint()
@@ -193,9 +195,7 @@ class TestSwanLabCheckpointSave:
         )
 
         logger = SwanLabLogger(project="p", mode="disabled")
-        trainer = _make_mock_trainer(
-            loggers=[logger], default_root_dir=str(tmp_path)
-        )
+        trainer = _make_mock_trainer(loggers=[logger], default_root_dir=str(tmp_path))
         checkpoint: Dict[str, Any] = {}
 
         cb = SwanLabCheckpoint()
@@ -217,9 +217,7 @@ class TestSwanLabCheckpointSave:
             id="fixed-id",
             mode="disabled",
         )
-        trainer = _make_mock_trainer(
-            loggers=[logger], default_root_dir=str(tmp_path)
-        )
+        trainer = _make_mock_trainer(loggers=[logger], default_root_dir=str(tmp_path))
         checkpoint: Dict[str, Any] = {}
 
         cb = SwanLabCheckpoint()
@@ -263,6 +261,7 @@ class TestSwanLabCheckpointSave:
 
 
 class TestSwanLabCheckpointLoad:
+    """Tests for the SwanLab checkpoint load callback."""
 
     def test_load_noop_without_swanlab_key(self):
         from stable_pretraining.callbacks.checkpoint_swanlab import (
@@ -315,6 +314,7 @@ class TestSwanLabCheckpointLoad:
 
 
 class TestConfigIntegration:
+    """Tests for config-driven logger/callback integration."""
 
     def test_swanlab_checkpoint_is_valid_callback_key(self):
         from stable_pretraining._config import set as spt_set, get_config
@@ -362,6 +362,7 @@ class TestConfigIntegration:
 
 
 class TestManagerSwanLabResume:
+    """Tests for Manager-driven SwanLab resume flow."""
 
     def test_restore_from_sidecar(self, tmp_path):
         from stable_pretraining.loggers import SwanLabLogger
@@ -371,11 +372,15 @@ class TestManagerSwanLabResume:
         from stable_pretraining.loggers.swanlab import find_swanlab_logger
 
         sidecar = tmp_path / _SWANLAB_RESUME_FILENAME
-        sidecar.write_text(json.dumps({
-            "id": "restored-id",
-            "project": "p",
-            "experiment_name": "run-1",
-        }))
+        sidecar.write_text(
+            json.dumps(
+                {
+                    "id": "restored-id",
+                    "project": "p",
+                    "experiment_name": "run-1",
+                }
+            )
+        )
 
         logger = SwanLabLogger(project="p", mode="disabled")
         trainer = _make_mock_trainer(loggers=[logger])
@@ -397,10 +402,14 @@ class TestManagerSwanLabResume:
         )
 
         sidecar = tmp_path / _SWANLAB_RESUME_FILENAME
-        sidecar.write_text(json.dumps({
-            "id": "run-1",
-            "project": "other-project",
-        }))
+        sidecar.write_text(
+            json.dumps(
+                {
+                    "id": "run-1",
+                    "project": "other-project",
+                }
+            )
+        )
 
         logger = SwanLabLogger(project="my-project", mode="disabled")
         resume_info = json.loads(sidecar.read_text())
@@ -417,6 +426,7 @@ class TestManagerSwanLabResume:
 
 
 class TestRoundTrip:
+    """End-to-end save/load round-trip tests."""
 
     def test_save_then_load_roundtrip(self, tmp_path):
         from stable_pretraining.loggers import SwanLabLogger
@@ -432,9 +442,7 @@ class TestRoundTrip:
             id="fixed-id",
             mode="disabled",
         )
-        trainer1 = _make_mock_trainer(
-            loggers=[logger1], default_root_dir=str(tmp_path)
-        )
+        trainer1 = _make_mock_trainer(loggers=[logger1], default_root_dir=str(tmp_path))
         checkpoint: Dict[str, Any] = {}
 
         cb = SwanLabCheckpoint()

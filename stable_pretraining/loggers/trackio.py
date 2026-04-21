@@ -112,9 +112,7 @@ class TrackioLogger(Logger):
         self._group = group
         self._space_id = space_id
         self._server_url = resolved_server_url
-        self._auto_log_gpu = (
-            _cuda_available() if auto_log_gpu is None else auto_log_gpu
-        )
+        self._auto_log_gpu = _cuda_available() if auto_log_gpu is None else auto_log_gpu
         self._gpu_log_interval = gpu_log_interval
         self._resume = resume
         self._trackio_kwargs = trackio_kwargs
@@ -149,9 +147,7 @@ class TrackioLogger(Logger):
         # loggers.
 
     @rank_zero_only
-    def log_metrics(
-        self, metrics: Dict[str, Any], step: Optional[int] = None
-    ) -> None:
+    def log_metrics(self, metrics: Dict[str, Any], step: Optional[int] = None) -> None:
         if self._run is None:
             self._init_run()
         # Filter to scalar values only — Trackio expects numeric metrics.
@@ -187,8 +183,9 @@ class TrackioLogger(Logger):
     # -- Internal helpers ------------------------------------------------------
 
     def _init_run(self, config: Optional[Dict[str, Any]] = None) -> None:
-        """Initialise the run — either via ``trackio.init()`` or, for a
-        self-hosted ``server_url``, by constructing a :class:`trackio.run.Run`
+        """Initialise the run via ``trackio.init()`` or against a self-hosted server.
+
+        For a self-hosted ``server_url``, constructs a :class:`trackio.run.Run`
         directly against the server.
         """
         if self._server_url:

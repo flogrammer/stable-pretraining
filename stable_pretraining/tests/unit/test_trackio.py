@@ -12,9 +12,8 @@ Tests cover:
 from __future__ import annotations
 
 import json
-from pathlib import Path
-from typing import Any, Dict, Optional
-from unittest.mock import MagicMock, patch, PropertyMock
+from typing import Any, Dict
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -52,13 +51,12 @@ def _make_mock_trainer(loggers=None, is_global_zero=True, default_root_dir="/tmp
 
 
 class TestTrackioLoggerConstruction:
+    """Tests for TrackioLogger construction and guards."""
 
     def test_import_error_when_trackio_missing(self):
         """TrackioLogger raises ImportError if trackio is not installed."""
         with patch.dict("sys.modules", {"trackio": None}):
-            with patch(
-                "stable_pretraining.loggers.trackio.TRACKIO_AVAILABLE", False
-            ):
+            with patch("stable_pretraining.loggers.trackio.TRACKIO_AVAILABLE", False):
                 from stable_pretraining.loggers.trackio import TrackioLogger
 
                 with pytest.raises(ImportError, match="trackio is required"):
@@ -105,6 +103,7 @@ class TestTrackioLoggerConstruction:
 
 
 class TestTrackioLoggerLogging:
+    """Tests for TrackioLogger metric logging."""
 
     @patch("stable_pretraining.loggers.trackio.TRACKIO_AVAILABLE", True)
     @patch("stable_pretraining.loggers.trackio.trackio")
@@ -136,9 +135,7 @@ class TestTrackioLoggerLogging:
         )
 
         # "text" should be filtered out
-        mock_trackio.log.assert_called_once_with(
-            {"loss": 0.5, "acc": 0.9}, step=1
-        )
+        mock_trackio.log.assert_called_once_with({"loss": 0.5, "acc": 0.9}, step=1)
 
     @patch("stable_pretraining.loggers.trackio.TRACKIO_AVAILABLE", True)
     @patch("stable_pretraining.loggers.trackio.trackio")
@@ -188,6 +185,7 @@ class TestTrackioLoggerLogging:
 
 
 class TestTrackioLoggerFinalize:
+    """Tests for TrackioLogger finalize/teardown."""
 
     @patch("stable_pretraining.loggers.trackio.TRACKIO_AVAILABLE", True)
     @patch("stable_pretraining.loggers.trackio.trackio")
@@ -220,6 +218,7 @@ class TestTrackioLoggerFinalize:
 
 
 class TestTrackioLoggerResume:
+    """Tests for TrackioLogger resume behavior."""
 
     @patch("stable_pretraining.loggers.trackio.TRACKIO_AVAILABLE", True)
     @patch("stable_pretraining.loggers.trackio.trackio")
@@ -271,6 +270,7 @@ class TestTrackioLoggerResume:
 
 
 class TestTrackioLoggerExperiment:
+    """Tests for TrackioLogger experiment property handling."""
 
     @patch("stable_pretraining.loggers.trackio.TRACKIO_AVAILABLE", True)
     @patch("stable_pretraining.loggers.trackio.trackio")
@@ -306,12 +306,12 @@ class TestTrackioLoggerExperiment:
 
 
 class TestFindTrackioLogger:
+    """Tests for locating the Trackio logger on a trainer."""
 
     @patch("stable_pretraining.loggers.trackio.TRACKIO_AVAILABLE", True)
     @patch("stable_pretraining.loggers.trackio.trackio")
     def test_find_none(self, mock_trackio):
         from stable_pretraining.loggers.trackio import (
-            TrackioLogger,
             find_trackio_logger,
         )
 
@@ -352,6 +352,7 @@ class TestFindTrackioLogger:
 
 
 class TestToScalar:
+    """Tests for the `_to_scalar` helper."""
 
     def test_int(self):
         from stable_pretraining.loggers.trackio import _to_scalar
@@ -398,6 +399,7 @@ class TestToScalar:
 
 
 class TestParamsToDict:
+    """Tests for the `_params_to_dict` helper."""
 
     def test_dict_passthrough(self):
         from stable_pretraining.loggers.trackio import _params_to_dict
@@ -439,6 +441,7 @@ class TestParamsToDict:
 
 
 class TestTrackioCheckpointSave:
+    """Tests for the Trackio checkpoint save callback."""
 
     @patch("stable_pretraining.loggers.trackio.TRACKIO_AVAILABLE", True)
     @patch("stable_pretraining.loggers.trackio.trackio")
@@ -540,9 +543,7 @@ class TestTrackioCheckpointSave:
         mock_run.name = "auto-generated-42"
         logger._run = mock_run
 
-        trainer = _make_mock_trainer(
-            loggers=[logger], default_root_dir=str(tmp_path)
-        )
+        trainer = _make_mock_trainer(loggers=[logger], default_root_dir=str(tmp_path))
         checkpoint: Dict[str, Any] = {}
 
         cb = TrackioCheckpoint()
@@ -557,6 +558,7 @@ class TestTrackioCheckpointSave:
 
 
 class TestTrackioCheckpointLoad:
+    """Tests for the Trackio checkpoint load callback."""
 
     @patch("stable_pretraining.loggers.trackio.TRACKIO_AVAILABLE", True)
     @patch("stable_pretraining.loggers.trackio.trackio")
@@ -622,6 +624,7 @@ class TestTrackioCheckpointLoad:
 
 
 class TestManagerTrackioResume:
+    """Tests for Manager-driven Trackio resume flow."""
 
     @patch("stable_pretraining.loggers.trackio.TRACKIO_AVAILABLE", True)
     @patch("stable_pretraining.loggers.trackio.trackio")
@@ -633,11 +636,15 @@ class TestManagerTrackioResume:
 
         # Write a sidecar
         sidecar = tmp_path / _TRACKIO_RESUME_FILENAME
-        sidecar.write_text(json.dumps({
-            "name": "run-1",
-            "project": "p",
-            "group": None,
-        }))
+        sidecar.write_text(
+            json.dumps(
+                {
+                    "name": "run-1",
+                    "project": "p",
+                    "group": None,
+                }
+            )
+        )
 
         logger = TrackioLogger(project="p")
         trainer = _make_mock_trainer(loggers=[logger])
@@ -666,11 +673,15 @@ class TestManagerTrackioResume:
         )
 
         sidecar = tmp_path / _TRACKIO_RESUME_FILENAME
-        sidecar.write_text(json.dumps({
-            "name": "run-1",
-            "project": "other-project",
-            "group": None,
-        }))
+        sidecar.write_text(
+            json.dumps(
+                {
+                    "name": "run-1",
+                    "project": "other-project",
+                    "group": None,
+                }
+            )
+        )
 
         logger = TrackioLogger(project="my-project")
 
@@ -688,6 +699,7 @@ class TestManagerTrackioResume:
 
 
 class TestConfigIntegration:
+    """Tests for config-driven logger/callback integration."""
 
     def test_trackio_checkpoint_is_valid_callback_key(self):
         from stable_pretraining._config import set as spt_set, get_config
@@ -735,6 +747,7 @@ class TestConfigIntegration:
 
 
 class TestExports:
+    """Tests for public symbol exports."""
 
     def test_trackio_logger_importable_from_top_level(self):
         from stable_pretraining import TrackioLogger
@@ -764,6 +777,7 @@ class TestExports:
 
 
 class TestAutoLogGpu:
+    """Tests for automatic GPU metric logging."""
 
     @patch("stable_pretraining.loggers.trackio.TRACKIO_AVAILABLE", True)
     @patch("stable_pretraining.loggers.trackio.trackio")
@@ -800,6 +814,7 @@ class TestAutoLogGpu:
 
 
 class TestTrackioLoggerServerUrl:
+    """Tests for TrackioLogger self-hosted server_url mode."""
 
     @patch("stable_pretraining.loggers.trackio.TRACKIO_AVAILABLE", True)
     @patch("stable_pretraining.loggers.trackio.trackio")
@@ -849,10 +864,11 @@ class TestTrackioLoggerServerUrl:
         mock_run = MagicMock()
         mock_client = MagicMock()
 
-        with patch("gradio_client.Client", return_value=mock_client) as mock_client_cls, \
-             patch("trackio.run.Run", return_value=mock_run) as mock_run_cls, \
-             patch("trackio.context_vars") as mock_cv:
-
+        with (
+            patch("gradio_client.Client", return_value=mock_client) as mock_client_cls,
+            patch("trackio.run.Run", return_value=mock_run) as mock_run_cls,
+            patch("trackio.context_vars") as mock_cv,
+        ):
             logger = TrackioLogger(
                 project="p",
                 name="run-1",
@@ -886,10 +902,11 @@ class TestTrackioLoggerServerUrl:
 
         mock_run = MagicMock()
 
-        with patch("gradio_client.Client"), \
-             patch("trackio.run.Run", return_value=mock_run), \
-             patch("trackio.context_vars"):
-
+        with (
+            patch("gradio_client.Client"),
+            patch("trackio.run.Run", return_value=mock_run),
+            patch("trackio.context_vars"),
+        ):
             logger = TrackioLogger(project="p", server_url="http://node:7860")
             logger.log_metrics({"loss": 0.5, "acc": 0.9}, step=5)
 
@@ -905,10 +922,11 @@ class TestTrackioLoggerServerUrl:
 
         mock_run = MagicMock()
 
-        with patch("gradio_client.Client"), \
-             patch("trackio.run.Run", return_value=mock_run), \
-             patch("trackio.context_vars"):
-
+        with (
+            patch("gradio_client.Client"),
+            patch("trackio.run.Run", return_value=mock_run),
+            patch("trackio.context_vars"),
+        ):
             logger = TrackioLogger(project="p", server_url="http://node:7860")
             logger.log_metrics({"loss": 1.0})
             logger.finalize("success")
@@ -924,10 +942,11 @@ class TestTrackioLoggerServerUrl:
 
         mock_run = MagicMock()
 
-        with patch("gradio_client.Client"), \
-             patch("trackio.run.Run", return_value=mock_run) as mock_run_cls, \
-             patch("trackio.context_vars"):
-
+        with (
+            patch("gradio_client.Client"),
+            patch("trackio.run.Run", return_value=mock_run) as mock_run_cls,
+            patch("trackio.context_vars"),
+        ):
             logger = TrackioLogger(project="p", server_url="http://node:7860")
             logger.log_hyperparams({"lr": 0.01})
 
@@ -942,10 +961,11 @@ class TestTrackioLoggerServerUrl:
 
         mock_run = MagicMock()
 
-        with patch("gradio_client.Client"), \
-             patch("trackio.run.Run", return_value=mock_run) as mock_run_cls, \
-             patch("trackio.context_vars"):
-
+        with (
+            patch("gradio_client.Client"),
+            patch("trackio.run.Run", return_value=mock_run) as mock_run_cls,
+            patch("trackio.context_vars"),
+        ):
             logger = TrackioLogger(
                 project="p",
                 server_url="http://node:7860",
@@ -978,6 +998,7 @@ class TestTrackioLoggerServerUrl:
 
 
 class TestLoadProjectDf:
+    """Tests for loading project DataFrames from trackio."""
 
     @patch("stable_pretraining.loggers.trackio.TRACKIO_AVAILABLE", True)
     @patch("stable_pretraining.loggers.trackio.trackio")
@@ -1022,7 +1043,9 @@ class TestLoadProjectDf:
         monkeypatch.setenv("TRACKIO_SERVER_URL", "http://envhost:7860")
 
         mock_client = MagicMock()
-        mock_client.predict.side_effect = [[], ]
+        mock_client.predict.side_effect = [
+            [],
+        ]
 
         with patch("gradio_client.Client", return_value=mock_client) as mock_cls:
             load_project_df("my-proj")
@@ -1063,6 +1086,7 @@ class TestLoadProjectDf:
 
 
 class TestSidecarRoundTrip:
+    """Tests for sidecar metadata round-trip."""
 
     @patch("stable_pretraining.loggers.trackio.TRACKIO_AVAILABLE", True)
     @patch("stable_pretraining.loggers.trackio.trackio")

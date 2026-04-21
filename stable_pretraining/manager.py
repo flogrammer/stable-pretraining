@@ -78,9 +78,7 @@ def print_logger_info(logger):
             log_header("SwanLabLogger")
             init_cfg = getattr(logger, "_swanlab_init", {}) or {}
             logging.info(f"  project:         {init_cfg.get('project')}")
-            logging.info(
-                f"  experiment_name: {init_cfg.get('experiment_name')}"
-            )
+            logging.info(f"  experiment_name: {init_cfg.get('experiment_name')}")
             if init_cfg.get("group"):
                 logging.info(f"  group:           {init_cfg.get('group')}")
             if init_cfg.get("id"):
@@ -282,9 +280,7 @@ class Manager(submitit.helpers.Checkpointable):
             if candidate.is_file():
                 sidecar = candidate
         if sidecar is None:
-            logging.debug(
-                "  No trackio_resume.json found, skipping run name injection"
-            )
+            logging.debug("  No trackio_resume.json found, skipping run name injection")
             return
 
         try:

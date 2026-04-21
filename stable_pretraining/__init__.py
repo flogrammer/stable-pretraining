@@ -43,7 +43,18 @@ except ImportError:
 # Import global config first (no heavy deps)
 from ._config import get_config, set  # noqa: F401
 
-from . import backbone, callbacks, data, loggers, losses, module, optim, registry, static, utils
+from . import (
+    backbone,
+    callbacks,
+    data,
+    loggers,
+    losses,
+    module,
+    optim,
+    registry,
+    static,
+    utils,
+)
 from .__about__ import (
     __author__,
     __license__,
