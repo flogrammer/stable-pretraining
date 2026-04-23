@@ -181,10 +181,10 @@ class OnlineProbe(TrainableCallback):
                     metric(preds, y)
                     metric_logs[f"eval/{callback.name}_{metric_name}"] = metric
 
-            # Raw scalars (loss): sync across GPUs
             on_step = callback.log_on in ["step", "both"]
             on_epoch = callback.log_on in ["epoch", "both"]
 
+            # Raw scalars (loss): sync across GPUs
             if scalar_logs:
                 self.log_dict(
                     scalar_logs, on_step=on_step, on_epoch=on_epoch, sync_dist=True
