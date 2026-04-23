@@ -53,6 +53,7 @@ class OnlineProbe(TrainableCallback):
             optimizer step. Default is 1 (no accumulation).
         metrics: Metrics to track during training/validation. Can be dict, list, tuple,
             or single metric instance.
+        log_on: Log intervals for probe metrics. Options are "step", "epoch", or "both" (default "both").
 
     Note:
         - The probe module is stored in pl_module.callbacks_modules[name]
@@ -79,6 +80,7 @@ class OnlineProbe(TrainableCallback):
         gradient_clip_algorithm: str = "norm",
         metrics: Optional[Union[dict, tuple, list, torchmetrics.Metric]] = None,
         verbose: bool = None,
+        log_on: str = "both",
     ) -> None:
         from .utils import resolve_verbose
 
@@ -89,6 +91,7 @@ class OnlineProbe(TrainableCallback):
             logging.warning(f"Not loss given to {name}, will use output of `probe`")
         self.loss = loss
         self.verbose = resolve_verbose(verbose)
+        self.log_on = log_on
 
         # Store probe configuration for later initialization
         self._probe_config = probe
@@ -109,7 +112,6 @@ class OnlineProbe(TrainableCallback):
         logging.info(f"  input: {input}")
         logging.info(f"  target: {target}")
         logging.info(f"  accumulate_grad_batches: {accumulate_grad_batches}")
-        # Setup metrics
         self.metrics = metrics
         logging.info("  wrapping forward")
         self.wrap_forward(pl_module=module)
@@ -180,11 +182,18 @@ class OnlineProbe(TrainableCallback):
                     metric_logs[f"eval/{callback.name}_{metric_name}"] = metric
 
             # Raw scalars (loss): sync across GPUs
+            on_step = callback.log_on in ["step", "both"]
+            on_epoch = callback.log_on in ["epoch", "both"]
+
             if scalar_logs:
-                self.log_dict(scalar_logs, on_step=True, on_epoch=True, sync_dist=True)
+                self.log_dict(
+                    scalar_logs, on_step=on_step, on_epoch=on_epoch, sync_dist=True
+                )
             # torchmetrics: handle their own distributed sync, do NOT use sync_dist
             if metric_logs:
-                self.log_dict(metric_logs, on_step=True, on_epoch=True, sync_dist=False)
+                self.log_dict(
+                    metric_logs, on_step=on_step, on_epoch=on_epoch, sync_dist=False
+                )
             return outputs
 
         # Bind the new method to the instance
